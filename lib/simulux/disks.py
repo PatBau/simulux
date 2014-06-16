@@ -29,6 +29,7 @@ class Disks(object):
         self.disks = {}
         self.partitions = {}
         self.files = {}
+        self.scenario_name = None
         
         # Add default layout
         self.add_layout()
@@ -37,7 +38,7 @@ class Disks(object):
         if conf:
             self.disks.update(conf.get('disks', {}))
             self.partitions.update(conf.get('partitions', {}))
-    
+            self.scenario_name = conf.get('scenario_name', None)
             # Need to process files for more conveniency
             files = conf.get('files', {})
             self._process_mounts(files)
