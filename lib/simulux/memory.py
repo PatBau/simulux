@@ -45,16 +45,16 @@ class Memory(object):
         # Add scenario specific memory data
         
         if conf: 
-            self.data.update({'used': conf['memory'].get('used', 0)})
-            self.data.update({'buffers': conf['memory'].get('buffers', 0)})
-            self.data.update({'shared': conf['memory'].get('shared', 0)})
-            self.data.update({'cached': conf['memory'].get('cached', 0)})
-            self.data.update({'total': conf['memory'].get('total', 0)})
-            self.data.update({'free': conf['memory'].get('free', int(self.data['total'])-int(self.data['used']))})
+            self.data.update({'used': int(conf['memory'].get('used', 0))})
+            self.data.update({'buffers': int(conf['memory'].get('buffers', 0))})
+            self.data.update({'shared': int(conf['memory'].get('shared', 0))})
+            self.data.update({'cached': int(conf['memory'].get('cached', 0))})
+            self.data.update({'total': int(conf['memory'].get('total', 0))})
+            self.data.update({'free': int(conf['memory'].get('free', int(self.data['total'])))-int(self.data['used'])})
             
-            assert self.data['used'] <= self.data['total']
-            assert self.data['free'] <= self.data['total']
-            assert self.data['used'] + self.data['free'] == self.data['total']
+            assert int(self.data['used']) <= int(self.data['total'])
+            assert int(self.data['free']) <= int(self.data['total'])
+            assert int(self.data['used']) + int(self.data['free']) == int(self.data['total'])
             
 
     def set_layout(self, layout_file=None):
