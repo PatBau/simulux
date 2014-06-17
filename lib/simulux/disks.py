@@ -103,21 +103,51 @@ class Disks(object):
                 del data['content']
             self.files.update({root: data})
 
-    def exists(self, path, working_directory=None):
+    def shorten_path(self, path, working_dir=None):
+        '''
+        Returns shorten paths like /x with input: /x/z.././
+        Returns None, if a relative path tries to get higher than top-directory
+        '''
+        assert path != None
+        if working_dir and not path.startswith('/'):
+            if working_dir.endswith('/'):
+                path = working_dir + path 
+            else:
+                path = working_dir + '/' + path   
+        new_path = list()
+        array = path.split('/')
+        if array[0] == '':
+            del array[0] #caused by root-/ there's an empty element when we split the the path
+        
+        for elem in array:
+            if elem == '..':
+                if len(new_path) == 0:
+                    print( "Error: can't go higher than root-directory" )
+                    return None
+                new_path.pop()
+            elif elem == '.':
+                continue
+            else:
+                new_path.append(elem)
+        return '/' + '/'.join(new_path)
+    
+    def exists(self, path, working_dir=None):
         '''
         Return if a path exists in the tree
         '''
-        if working_directory and not path.startswith('/'):
-            path = working_directory + path
+        path = self.shorten_path(path, working_dir)
+
         if path in self.files:
             return True
         return False
 
-    def is_folder(self, path, working_directory):
+    def is_folder(self, path, working_dir=None):
         '''
         Return whether a path is a folder
         '''
-        if not self.exists(path, working_directory):
+        path = self.shorten_path(path, working_dir)
+            
+        if not self.exists(path, working_dir):
             return False
         details = self.get_details(path)
         if details.get('mount') == True:
@@ -126,11 +156,13 @@ class Disks(object):
             return True
         return False
         
-    def is_file(self, path, working_directory):
+    def is_file(self, path, working_dir=None):
         '''
         Return whether a path is a file
         '''
-        if not self.exists(path):
+        path = self.shorten_path(path, working_dir)
+             
+        if not self.exists(path, working_dir):
             return False
         details = self.get_details(path)
         if details.get('filetype') == 'file':
@@ -252,14 +284,14 @@ class Disks(object):
         # Else recurse to the parent
         self._update_parent_size(parent_path, size)
     
-    def get_file_content(self, filename):
+    def get_file_content(self, filename, working_dir=None):
         '''
         Opens a file if it exists
         '''
         
         # check if the file exists etc.
-        
-        if not self.is_file(filename):
+        filename = self.shorten_path(filename, working_dir)
+        if not self.is_file(filename, working_dir):
             return None
         details = self.get_details(filename)
         real_file = details.get('real_filename', None)
