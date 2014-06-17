@@ -102,19 +102,21 @@ class Disks(object):
                 del data['content']
             self.files.update({root: data})
 
-    def exists(self, path):
+    def exists(self, path, working_directory=None):
         '''
         Return if a path exists in the tree
         '''
+        if working_directory and not path.startswith('/'):
+            path = working_directory + path
         if path in self.files:
             return True
         return False
 
-    def is_folder(self, path):
+    def is_folder(self, path, working_directory):
         '''
         Return whether a path is a folder
         '''
-        if not self.exists(path):
+        if not self.exists(path, working_directory):
             return False
         details = self.get_details(path)
         if details.get('mount') == True:
@@ -123,7 +125,7 @@ class Disks(object):
             return True
         return False
         
-    def is_file(self, path):
+    def is_file(self, path, working_directory):
         '''
         Return whether a path is a file
         '''
