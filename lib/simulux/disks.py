@@ -104,10 +104,9 @@ class Disks(object):
                 del data['content']
             self.files.update({root: data})
     
-    def shorten_path(self, path):
-        # special case
-        if not path:
-            return ''
+    def shorten_path(self, path, working_dir=''):
+        
+        path = self._make_absolute(path, working_dir)
         
         new_path = list()
         path_exploded = path.split('/')
@@ -144,75 +143,34 @@ class Disks(object):
             # this case occurs, when origin path is "./"
             return '.'
         return ret
-        
-    #def shorten_path(self, path, working_dir=None):
-        #'''
-        #Returns shorten paths like /x with input: /x/z.././
-        #'''
-        ## special cases
-        #if not path:
-            #if not working_dir:
-                #raise SimuluxDiskException("path is null")
-            #return working_dir
-        #if working_dir:
-            #if not working_dir.startswith('/'):
-                #raise SimuluxDiskException("Working directory must be absolute")
-            #if path == '' or path == '/':
-                #return working_dir
-        #if path == '':
-            #return ''
-            
-        ##need this to differentiate return value
-        #absolute =  True if path.startswith('/') else False
-        
-        #if working_dir and not absolute:
-            ##glue working_dir and relative path together to one absolute path
-            #if working_dir.endswith('/'):
-                #path = working_dir + path 
-            #else:
-                #path = working_dir + '/' + path  
-                 
-        #new_path = list()
-        #array = path.split('/')
-        ## delete all empty string which are caused by wrong path syntax or "/" at end/beginning
-        #while '' in array:
-            #array.remove('')
-
-        #for elem in array:
-            #if elem == '..':
-                #if len(new_path) > 0:
-                    #new_path.pop()
-                    #continue
-                #if not working_dir:
-                    #raise SimuluxDiskException("Can not go higher than a top level dir in a relative path (no work_dir given)")
-            #elif elem == '.':
-                #continue
-            #else:
-                #new_path.append(elem)
-        #if working_dir or absolute:
-            #ret = '/' + '/'.join(new_path)
-        #else:
-            #ret = '/'.join(new_path)
-        #if ret == '' and not absolute:
-            ##if the new_path is an empty string this is caused by the original string: './', '././', ...
-            #return '.'
-        #return ret
     
-    def exists(self, path, working_dir=None):
+    def _make_absolute(self, path, working_dir):
+        if path.startswith('/'):
+            return path
+        else:
+            if not working_dir.startswith('/'):
+                raise SimuluxDiskException("Working directory has to be absolute")
+            if path == '':
+                return working_dir
+            if working_dir.endswith('/'):
+                return working_dir + path
+            else:
+                return working_dir + '/' + path
+                
+    def exists(self, path, working_dir=''):
         '''
         Return if a path exists in the tree
         '''
-        path = self.shorten_path(path, working_dir)
-
+        path = self.shorten_path(self._make_absolute(path, working_dir))
         if path in self.files:
             return True
         return False
 
-    def is_folder(self, path, working_dir=None):
+    def is_folder(self, path, working_dir=''):
         '''
         Return whether a path is a folder
         '''
-        path = self.shorten_path(path, working_dir)
+        path = self.shorten_path(self._make_absolute(path, working_dir))
             
         if not self.exists(path, working_dir):
             return False
@@ -223,11 +181,11 @@ class Disks(object):
             return True
         return False
         
-    def is_file(self, path, working_dir=None):
+    def is_file(self, path, working_dir=''):
         '''
         Return whether a path is a file
         '''
-        path = self.shorten_path(path, working_dir)
+        path = self.shorten_path(self._make_absolute(path, working_dir))
              
         if not self.exists(path, working_dir):
             return False
