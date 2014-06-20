@@ -1,6 +1,7 @@
 import os
 from simulux.utils import load_json
 from simulux.constants import DIST_DEFAULTS_PATH, FILES_DEFAULT_PATH
+from simulux.exceptions import SimuluxDiskException
 
 DEFAULT_LAYOUT = os.path.join(DIST_DEFAULTS_PATH, 'disks_layout.json')
 
@@ -102,34 +103,100 @@ class Disks(object):
                 # For the folder itself we don't need the subfiles in content
                 del data['content']
             self.files.update({root: data})
-
-    def shorten_path(self, path, working_dir=None):
-        '''
-        Returns shorten paths like /x with input: /x/z.././
-        Returns None, if a relative path tries to get higher than top-directory
-        '''
-        assert path != None
-        if working_dir and not path.startswith('/'):
-            if working_dir.endswith('/'):
-                path = working_dir + path 
-            else:
-                path = working_dir + '/' + path   
-        new_path = list()
-        array = path.split('/')
-        if array[0] == '':
-            del array[0] #caused by root-/ there's an empty element when we split the the path
+    
+    def shorten_path(self, path):
+        # special case
+        if not path:
+            return ''
         
-        for elem in array:
+        new_path = list()
+        path_exploded = path.split('/')
+        # delete all empty string which are caused by wrong path syntax or "/" at end/beginning
+        while '' in path_exploded:
+            path_exploded.remove('')
+        
+        is_absolute = False
+        if path.startswith('/'):
+            is_absolute = True
+
+        for elem in path_exploded:
             if elem == '..':
-                if len(new_path) == 0:
-                    print( "Error: can't go higher than root-directory" )
-                    return None
-                new_path.pop()
+                if len(new_path) > 0:
+                    new_path.pop()
+                    continue
+                # ../ over top-directory of path
+                # check if path is relative or absolute
+                # relative: work with working dir
+                # absolute: do nothing, "/" is top-folder
+                if not is_absolute:
+                    raise SimuluxDiskException("Can not go higher then top-level in a relative path")
+                # absolute, do nothing
+                # "/" is the top-folder
             elif elem == '.':
                 continue
             else:
                 new_path.append(elem)
-        return '/' + '/'.join(new_path)
+
+        if is_absolute:        
+            return '/' + '/'.join(new_path)
+        ret = '/'.join(new_path)
+        if ret == '':
+            # this case occurs, when origin path is "./"
+            return '.'
+        return ret
+        
+    #def shorten_path(self, path, working_dir=None):
+        #'''
+        #Returns shorten paths like /x with input: /x/z.././
+        #'''
+        ## special cases
+        #if not path:
+            #if not working_dir:
+                #raise SimuluxDiskException("path is null")
+            #return working_dir
+        #if working_dir:
+            #if not working_dir.startswith('/'):
+                #raise SimuluxDiskException("Working directory must be absolute")
+            #if path == '' or path == '/':
+                #return working_dir
+        #if path == '':
+            #return ''
+            
+        ##need this to differentiate return value
+        #absolute =  True if path.startswith('/') else False
+        
+        #if working_dir and not absolute:
+            ##glue working_dir and relative path together to one absolute path
+            #if working_dir.endswith('/'):
+                #path = working_dir + path 
+            #else:
+                #path = working_dir + '/' + path  
+                 
+        #new_path = list()
+        #array = path.split('/')
+        ## delete all empty string which are caused by wrong path syntax or "/" at end/beginning
+        #while '' in array:
+            #array.remove('')
+
+        #for elem in array:
+            #if elem == '..':
+                #if len(new_path) > 0:
+                    #new_path.pop()
+                    #continue
+                #if not working_dir:
+                    #raise SimuluxDiskException("Can not go higher than a top level dir in a relative path (no work_dir given)")
+            #elif elem == '.':
+                #continue
+            #else:
+                #new_path.append(elem)
+        #if working_dir or absolute:
+            #ret = '/' + '/'.join(new_path)
+        #else:
+            #ret = '/'.join(new_path)
+        #if ret == '' and not absolute:
+            ##if the new_path is an empty string this is caused by the original string: './', '././', ...
+            #return '.'
+        #return ret
     
     def exists(self, path, working_dir=None):
         '''
