@@ -309,7 +309,7 @@ class Disks(object):
         # Else recurse to the parent
         self._update_parent_size(parent_path, size)
     
-    def get_file_content(self, filename, working_dir=None):
+    def get_file_content(self, filename, working_dir=''):
         '''
         Opens a file if it exists
         '''
