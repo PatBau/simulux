@@ -1,16 +1,9 @@
 import os
 from simulux.utils import load_json
+from simulux.utils import load_layout
 from simulux.constants import DIST_DEFAULTS_PATH
 
 DEFAULT_LAYOUT = os.path.join(DIST_DEFAULTS_PATH, 'processes_layout.json')
-
-def load_layout(layout_file=None):
-    '''
-    Load the layout from the config file (structured and hierarchical)
-    '''
-    if not layout_file:
-        layout_file = DEFAULT_LAYOUT
-    return load_json(layout_file)
 
 '''
 Processes object 
@@ -58,7 +51,7 @@ class Processes(object):
         '''
         Set the default processes layout
         '''
-        layout = load_layout()
+        layout = load_layout(DEFAULT_LAYOUT)
     
         for item in layout:
             process = Process(

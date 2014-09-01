@@ -1,17 +1,11 @@
 import os
 from simulux.utils import load_json
+from simulux.utils import load_layout
 from simulux.constants import DIST_DEFAULTS_PATH, FILES_DEFAULT_PATH
 from simulux.exceptions import SimuluxDiskException
 
 DEFAULT_LAYOUT = os.path.join(DIST_DEFAULTS_PATH, 'disks_layout.json')
 
-def load_layout(layout_file=None):
-    '''
-    Load the layout from the config file (structured and hierarchical)
-    '''
-    if not layout_file:
-        layout_file = DEFAULT_LAYOUT
-    return load_json(layout_file)
 
 '''
 Disk object 
@@ -50,7 +44,7 @@ class Disks(object):
         Add an extra disk layout definition; override any existing disk, partition
         and file
         '''
-        layout = load_layout(layout_file)
+        layout = load_layout(DEFAULT_LAYOUT, layout_file)
 
         self.disks.update(layout.get('disks', {}))
         self.partitions.update(layout.get('partitions', {}))

@@ -1,17 +1,10 @@
 import os
 import operator
 from simulux.utils import load_json
+from simulux.utils import load_layout
 from simulux.constants import DIST_DEFAULTS_PATH
 
 DEFAULT_LAYOUT = os.path.join(DIST_DEFAULTS_PATH, 'cpus_layout.json')
-
-def load_layout(layout_file=None):
-    '''
-    Load the layout from the config file (structured and hierarchical)
-    '''
-    if not layout_file:
-        layout_file = DEFAULT_LAYOUT
-    return load_json(layout_file)
 
 '''
 CPU object 
@@ -46,7 +39,7 @@ class CPUS(object):
         
         # Add scenario specific CPUs
         if conf:
-            default_layout = load_layout()
+            default_layout = load_layout(DEFAULT_LAYOUT)
             # Load the values from config file - if value is not set, use the default value
             self.cores = conf.get('cores', default_layout.get('cores'))
             
@@ -68,7 +61,7 @@ class CPUS(object):
         '''
         Set the CPU configuration based on the default layout (or get it overriden)
         '''
-        layout = load_layout(layout_file)
+        layout = load_layout(DEFAULT_LAYOUT, layout_file)
         self.cores = layout.get('cores')
 
         self.data['user'] = layout.get('user')

@@ -14,3 +14,12 @@ def load_json(filename):
         print 'Error loading JSON file %s: %s' % (filename, e,)
         content = {}
     return content
+
+def load_layout(default_layout, layout_file=None):
+    '''
+    Load the layout from the config file (structured and hierarchical)
+    '''
+    if not layout_file:
+        layout_file = default_layout
+    return load_json(layout_file)
+
